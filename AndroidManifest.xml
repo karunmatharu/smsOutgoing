@@ -9,7 +9,6 @@
         android:targetSdkVersion="21" />
     
     <uses-permission android:name="android.permission.READ_SMS" />
-    <uses-permission android:name="android.permission.WRITE_SMS" />
 
     <application
         android:allowBackup="true"
