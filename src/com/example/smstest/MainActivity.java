@@ -2,7 +2,6 @@ package com.example.smstest;
 
 import android.app.Activity;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -43,75 +42,59 @@ public class MainActivity extends Activity {
 				true, SmsObserver);
 	}
 
-	
-	protected void getOutgoingSMS() {
-		Log.i(TAG, "attempting to retrieve message");
 
-		ContentValues values = new ContentValues();
-		values.put("type", 1);
+	protected void getOutgoingSMS() {
+		Log.i(TAG, "called getOutgoingSMS");
 
 		Uri uriSMSURI = Uri.parse("content://sms/");
+		String selection = "type = '2'"; //Selection parameter to only select messages in sent folder
 
-		this.getContentResolver().insert(uriSMSURI, values);
-
-		// Uri uriSMSURI = Uri.parse("content://sms/");
-		Cursor cur = this.getContentResolver().query(uriSMSURI, null, null,
+		Cursor cur = this.getContentResolver().query(uriSMSURI, null, selection,
 				null, null);
 
-		// this will make it point to the first record, which is the last SMS
-		// sent
+		// point to the first record (the last SMS message sent)
 		cur.moveToNext();
-		String content = cur.getString(cur.getColumnIndex("body"));
-		// use cur.getColumnNames() to get a list of all available columns...
-		// each field that compounds a SMS is represented by a column (phone
-		// number, status, etc.)
-		// then just save all data you want to the SDcard :)
-		String columnNum = cur.getString(cur.getColumnIndex("type"));
 
-		// Log.i(TAG, "Type : " + columnNum + " Content: " + content);
-
-		// Column headers for content://sms/ table
-		/*
-		 * 0: _id 1: thread_id 2: address 3: person 4: date 5: protocol 6: read
-		 * 7: status 8: type 9: reply_path_present 10: subject 11: body 12:
-		 * service_center 13: locked
+		/* Column headers for content://sms/ table
+		 * 0: _id 
+		 * 1: thread_id
+		 * 2: address 
+		 * 3: person 
+		 * 4: date 
+		 * 5: protocol 
+		 * 6: read
+		 * 7: status 
+		 * 8: type 
+		 * 9: reply_path_present 
+		 * 10: subject 
+		 * 11: body 
+		 * 12: service_center
+		 * 13: locked
 		 */
 
-		String[] columns = new String[] { "address", "person", "date", "body",
-				"type" };
-
-		// if (cur.getCount() > 0) {
-		String count = Integer.toString(cur.getCount());
-		Log.i("Count", count);
-		// while (cur.moveToNext()){
-		String type = cur.getString(cur.getColumnIndex(columns[4]));
-		if (type.equals("2")) // 2 for Sent Sms
-		{
+		//Return if mesasge has already been logged, else print to logcat
+		String id = cur.getString(cur.getColumnIndex("_id"));
+		if (id.equals(lastSmsId)){	
+			Log.i(TAG, "message already logged, returning");
+			return;
+		}
+		else {
 			String address = cur.getString(cur.getColumnIndex("address"));
 			String name = cur.getString(cur.getColumnIndex("person"));
 			String date = cur.getString(cur.getColumnIndex("date"));
 			String msg = cur.getString(cur.getColumnIndex("body"));
-			String id = cur.getString(cur.getColumnIndex("_id"));
 
-			// Only log message details if message it isnt
-			// a duplicate of the previous message
-			if (!id.equals(lastSmsId)) {
-				Log.i(TAG, " ");
-				Log.i(TAG, "NEW MESSAGE");
-				Log.i(TAG, "Id: " + id);
-				Log.i(TAG, "Address: " + address);
-				Log.i(TAG, "Name: " + name);
-				Log.i(TAG, "date: " + date);
-				Log.i(TAG, "msg: " + msg);
+			Log.i(TAG, "NEW OUTGOING SMS MESSAGE");
+			Log.i(TAG, "Address: " + address);
+			Log.i(TAG, "Name: " + name);
+			Log.i(TAG, "date: " + date);
+			Log.i(TAG, "msg: " + msg);
 
-				// update the last sms id
-				lastSmsId = id;
-			}
-
+			// update the last SMS id
+			lastSmsId = id;
 		}
-		// }
-		// }
 	}
+
 
 	class SmsObserver extends ContentObserver {
 		public SmsObserver(Handler handler) {
@@ -130,3 +113,4 @@ public class MainActivity extends Activity {
 		}
 	}
 }
+
